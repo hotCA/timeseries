@@ -1,2 +1,3 @@
-# timeseries
-Forecasting project 
+# Time series
+
+Forecasting project for EC4445
