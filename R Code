@@ -1,0 +1,93 @@
+#Import data
+
+IMPORT0 <- read.csv("IMPCH.csv")
+View(IMPORT0)
+#data frame
+
+IMPORT1<- ts(IMPORT0[,-1], start=1985, frequency=12)
+
+#autoplot
+autoplot(IMPORT1)+
+  xlab("Year")+
+  ylab("Millions of Dollars")
+
+#ggseasonal
+
+ggseasonplot(IMPORT1)+
+  xlab("Month")+
+  ylab("Millions of Dollars")+
+  ggtitle("U.S. Imports of Goods by Customs Basis from China")
+
+#ggsubseriesplot
+
+ggsubseriesplot(IMPORT1)+
+  xlab("Month")+
+  ylab("Millions of Dollars")+
+  ggtitle("U.S. Imports of Goods by Customs Basis from China")
+
+(lambda <-BoxCox.lambda(IMPORT1))
+autoplot(BoxCox(IMPORT1,lambda))
+IMPORT2 <-BoxCox(IMPORT1,lambda)
+
+#methods
+fc1 <- rwf(IMPORT2,drift=TRUE,h=100)
+fc2 <- snaive(IMPORT2,h=100)
+reg <- tslm(IMPORT2~trend+season)
+fc3 <- forecast(reg,h=100)
+fc4 <- hw(IMPORT2,h=100)
+
+#autoploting the method into the time series
+autoplot(IMPORT2)+
+  autolayer(fc1,color="blue",PI=FALSE)+
+  autolayer(fc2,color="red",PI=FALSE)+
+  autolayer(fc3,color="yellow",PI=FALSE)+
+  autolayer(fc4,color="green",PI=FALSE)+
+  xlab("Month")+
+  ylab("Millions of Dollars")+
+  ggtitle("U.S. Imports of Goods by Customs Basis from China")
+
+#train & Test
+
+train <- window(IMPORT2,end=2010.9)
+test <- window(IMPORT2,start=2011)
+length(train)
+length(test)
+length(train)/length(IMPORT2)
+
+#autoploting
+
+autoplot(IMPORT2)+
+  autolayer(train,color="blue")+
+  autolayer(test,color="red")+
+  ylab("Millions of dollars")+
+  xlab("Year")+
+  ggtitle("U.S. Imports of Goods by Customs Basis from China")
+
+fc11 <- rwf(train,drift=TRUE,h=99)
+fc21 <- snaive(train,h=99)
+reg1 <- tslm(train~trend+season)
+fc31 <- forecast(reg1,h=99)
+fc41 <- hw(train,h=99)
+fc51 <- ses(train,h=99)
+fc61 <- holt(train,h=99)
+
+autoplot(IMPORT2)+
+  autolayer(fc11,color="blue",PI=FALSE)+
+  autolayer(fc21,color="red",PI=FALSE)+
+  autolayer(fc31,color="orange",PI=FALSE)+
+  autolayer(fc41,color="green",PI=FALSE)+
+  autolayer(fc51,color="purple",PI=FALSE)+
+  autolayer(fc61,color="yellow",PI=FALSE)
+accuracy(fc11,test)
+accuracy(fc21,test)
+accuracy(fc31,test)
+accuracy(fc41,test)
+accuracy(fc51,test)
+accuracy(fc61,test)
+
+autoplot(ses(IMPORT2))+
+  xlab("Year")+
+  ylab("Millions of Dollars")+
+  ggtitle("Prediction interval")
+ses(IMPORT2,bootstrap=TRUE)
+checkresiduals(ses(test))
